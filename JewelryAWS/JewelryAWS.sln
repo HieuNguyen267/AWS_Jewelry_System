@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jewelry-API", "Jewelry-API\Jewelry-API.csproj", "{3BEBE4C9-30BB-460A-B074-7DCF06799502}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jewelry-Model", "Jewelry-Model\Jewelry-Model.csproj", "{EE7337C6-64AB-4F59-B13C-D24DC8F3BAC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jewelry-Repository", "Jewelry-Repository\Jewelry-Repository.csproj", "{D80D6570-C1B0-4536-8015-6D8B8D86C694}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jewelry-Service", "Jewelry-Service\Jewelry-Service.csproj", "{0FD451CB-FBBC-450D-BBC9-3525FCF1FDE4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3BEBE4C9-30BB-460A-B074-7DCF06799502}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BEBE4C9-30BB-460A-B074-7DCF06799502}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BEBE4C9-30BB-460A-B074-7DCF06799502}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BEBE4C9-30BB-460A-B074-7DCF06799502}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE7337C6-64AB-4F59-B13C-D24DC8F3BAC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE7337C6-64AB-4F59-B13C-D24DC8F3BAC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE7337C6-64AB-4F59-B13C-D24DC8F3BAC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE7337C6-64AB-4F59-B13C-D24DC8F3BAC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D80D6570-C1B0-4536-8015-6D8B8D86C694}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D80D6570-C1B0-4536-8015-6D8B8D86C694}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D80D6570-C1B0-4536-8015-6D8B8D86C694}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D80D6570-C1B0-4536-8015-6D8B8D86C694}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FD451CB-FBBC-450D-BBC9-3525FCF1FDE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FD451CB-FBBC-450D-BBC9-3525FCF1FDE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FD451CB-FBBC-450D-BBC9-3525FCF1FDE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FD451CB-FBBC-450D-BBC9-3525FCF1FDE4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

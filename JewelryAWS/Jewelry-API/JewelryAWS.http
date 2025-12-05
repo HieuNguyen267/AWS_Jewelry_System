@@ -1,0 +1,6 @@
+@JewelryAWS_HostAddress = http://localhost:5291
+
+GET {{JewelryAWS_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
