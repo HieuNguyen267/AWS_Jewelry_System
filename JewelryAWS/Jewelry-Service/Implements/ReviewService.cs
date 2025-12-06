@@ -58,7 +58,7 @@ public class ReviewService : BaseService<ReviewService>, IReviewService
             Rating = createReviewRequest.Rating,
             Content = createReviewRequest.Content,
             IsActive = true,
-            CreateAt = TimeUtil.GetCurrentSEATime()
+            CreateAt = DateTime.UtcNow
         };
 
         await _unitOfWork.GetRepository<Review>().InsertAsync(review);

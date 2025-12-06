@@ -44,6 +44,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
 builder.Services.AddAuthorization();
 
+builder.Services.Configure<CognitoSetting>(
+    builder.Configuration.GetSection("Cognito"));
+
 builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
