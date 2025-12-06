@@ -16,24 +16,16 @@ public static class DependencyInjection
         }
         public static IServiceCollection AddCustomServices(this IServiceCollection services)
         {
-            //services.AddScoped<ISizeService, SizeService>();
+            services.AddScoped<ISizeService, SizeService>();
             services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IProductSizeService, ProductSizeService>();
-            //services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IReviewService, ReviewService>();
             return services;
         }
         public static IServiceCollection AddDatabase(this IServiceCollection services)
         {
             services.AddDbContext<JewelryAwsContext>(options => options.UseNpgsql(GetConnectionString()));
-            return services;
-        }
-        public static IServiceCollection AddCustomServices(this IServiceCollection services)
-        {
-            services.AddScoped<ISizeService, SizeService>();
-            services.AddScoped<IUploadService, UploadService>();
-            services.AddScoped<IProductService, ProductService>();
-            services.AddScoped<IProductSizeService, ProductSizeService>();
             return services;
         }
         private static string GetConnectionString()

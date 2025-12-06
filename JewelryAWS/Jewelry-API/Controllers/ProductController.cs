@@ -2,7 +2,9 @@
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Product;
+using Jewelry_Model.Payload.Request.Review;
 using Jewelry_Model.Payload.Response.Product;
+using Jewelry_Model.Payload.Response.Review;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,9 +13,11 @@ namespace Jewelry_API.Controller;
 public class ProductController : BaseController<ProductController>
 {
     private readonly IProductService _productService;
-    public ProductController(ILogger<ProductController> logger, IProductService productService) : base(logger)
+    private readonly IReviewService _reviewService;
+    public ProductController(ILogger<ProductController> logger, IProductService productService, IReviewService reviewService) : base(logger)
     {
         _productService = productService;
+        _reviewService = reviewService;
     }
     
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
@@ -65,6 +69,28 @@ public class ProductController : BaseController<ProductController>
     public async Task<IActionResult> DeleteProduct([FromRoute] Guid id)
     {
         var response = await _productService.DeleteProduct(id);
+        return StatusCode(response.Status, response);
+    }
+    
+    [HttpPost(ApiEndPointConstant.Product.CreateReview)]
+    [ProducesResponseType(typeof(BaseResponse<CreateReviewResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<CreateReviewResponse>), StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> CreateReview([FromRoute] Guid id, [FromBody] CreateReviewRequest request)
+    {
+        var response = await _reviewService.CreateReview(id, request);
+        return StatusCode(response.Status, response);
+    }
+
+    [HttpGet(ApiEndPointConstant.Product.GetAllReview)]
+    [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> GetAllReview([FromRoute] Guid id, [FromQuery] int? page, [FromQuery] int? size)
+    {
+        int pageNumber = page ?? 1;
+        int pageSize = size ?? 10;
+        var response = await _reviewService.GetAllReviews(id, pageNumber, pageSize);
         return StatusCode(response.Status, response);
     }
 }
