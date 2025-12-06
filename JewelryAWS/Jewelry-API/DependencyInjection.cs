@@ -1,6 +1,7 @@
 ﻿using Jewelry_Model.Entity;
 using Jewelry_Repository.Implement;
 using Jewelry_Repository.Interface;
+using Jewelry_Service.AwsS3.Services;
 using Jewelry_Service.Implements;
 using Jewelry_Service.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +20,10 @@ public static class DependencyInjection
         services.AddScoped<IAuthenService, AuthenService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ISizeService, SizeService>();
-        services.AddScoped<IUploadService, UploadService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IProductSizeService, ProductSizeService>();
         services.AddScoped<IReviewService, ReviewService>();
+        services.AddScoped<IStorageService, StorageService>();
         return services;
     }
     public static IServiceCollection AddDatabase(this IServiceCollection services)

@@ -1,42 +1,78 @@
-﻿using Jewelry_Model.Entity;
+﻿using Amazon.S3.Model;
+using Jewelry_Model.Entity;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Product;
 using Jewelry_Model.Payload.Response.Product;
 using Jewelry_Model.Payload.Response.ProductSize;
+using Jewelry_Model.Settings;
 using Jewelry_Repository.Interface;
+using Jewelry_Service.AwsS3.Models;
+using Jewelry_Service.AwsS3.Services;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Jewelry_Service.Implements;
 
 public class ProductService : BaseService<ProductService>, IProductService
 {
-    private readonly IUploadService _uploadService;
-    public ProductService(IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<ProductService> logger, IHttpContextAccessor httpContextAccessor, IUploadService uploadService) : base(unitOfWork, logger, httpContextAccessor)
+    private readonly IStorageService _storageService;
+
+    private readonly CredentialsSetting _credentialsSetting;
+    private readonly S3Settings _s3Settings;
+    public ProductService(IUnitOfWork<JewelryAwsContext> unitOfWork,
+        ILogger<ProductService> logger, IHttpContextAccessor httpContextAccessor,
+        IStorageService storageService, 
+        IOptions<AwsSettings> options) 
+        : base(unitOfWork, logger, httpContextAccessor)
     {
-        _uploadService = uploadService;
+        _storageService = storageService;
+        _s3Settings = options.Value.S3;
+        _credentialsSetting = options.Value.UserCredentials;
     }
 
     public async Task<BaseResponse<CreateProductResponse>> CreateProduct(CreateProductRequest request)
     {
+        string imageStr = "";
+        //upload file to aws
+        if (request.Image != null)
+        {
+            using var memoryStr = new MemoryStream();
+            await request.Image.CopyToAsync(memoryStr);
+
+            var fileExt = Path.GetExtension(request.Image.FileName);
+            var objName = $"{Guid.NewGuid().ToString()}{fileExt}";
+
+            var s3Obj = new AwsS3.Models.S3Object
+            {
+                BucketName = _s3Settings.BucketName,
+                InputStream = memoryStr,
+                Name = objName 
+            };
+
+            var keyOfImage = await _storageService.UploadFileAsync(s3Obj);
+            imageStr = keyOfImage;
+        }
+
         var product = new Product
         {
             Id = Guid.NewGuid(),
             Name = request.Name,
             Description = request.Description,
-            Image = await _uploadService.UploadImage(request.Image),
+            Image = imageStr,
             IsNew = true,
             IsActive = true,
             CreateAt = DateTime.UtcNow
         };
-        
+
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
-        
+
         List<ProductSize> productSizes = new List<ProductSize>();
-        
+
         foreach (var size in request.Sizes)
         {
             var sizeExist = await _unitOfWork.GetRepository<Size>().SingleOrDefaultAsync(
@@ -65,9 +101,9 @@ public class ProductService : BaseService<ProductService>, IProductService
         }
 
         await _unitOfWork.GetRepository<ProductSize>().InsertRangeAsync(productSizes);
-        
+
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        
+
         if (!isSuccess)
         {
             throw new Exception("Một lỗi đã xảy ra trong quá trình tạo sản phẩm");
@@ -81,7 +117,8 @@ public class ProductService : BaseService<ProductService>, IProductService
             {
                 Name = product.Name,
                 Description = product.Description,
-                Image = product.Image
+                Image = product.Image,
+                ProductSizes = productSizes
             }
         };
     }
@@ -167,20 +204,31 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Data = null
             };
         }
-        
+
         string? uploadedImage = null;
         if (request.Image != null)
         {
-            uploadedImage = await _uploadService.UploadImage(request.Image);
+            using var memoryStr = new MemoryStream();
+            await request.Image.CopyToAsync(memoryStr);
+
+            var fileExt = Path.GetExtension(request.Image.FileName);
+            var objName = $"{Guid.NewGuid().ToString()}{fileExt}";
+            var s3Obj = new AwsS3.Models.S3Object
+            {
+                BucketName = _s3Settings.BucketName,
+                InputStream = memoryStr,
+                Name = objName
+            };
+            uploadedImage = await _storageService.UploadFileAsync(s3Obj);
         }
-        
+
         product.Name = request.Name ?? product.Name;
         product.Description = request.Description ?? product.Description;
         product.Image = uploadedImage ?? product.Image;
-        
+
         _unitOfWork.GetRepository<Product>().UpdateAsync(product);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        
+
         if (!isSuccess)
         {
             throw new Exception("Một lỗi đã xảy ra trong quá trình cập nhật sản phẩm");
@@ -214,7 +262,7 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Data = false
             };
         }
-        
+
         product.IsActive = false;
         product.DeleteAt = DateTime.UtcNow;
         _unitOfWork.GetRepository<Product>().UpdateAsync(product);
@@ -227,9 +275,9 @@ public class ProductService : BaseService<ProductService>, IProductService
             productSize.IsActive = false;
         }
         _unitOfWork.GetRepository<ProductSize>().UpdateRange(productSizes);
-        
+
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        
+
         if (!isSuccess)
         {
             throw new Exception("Một lỗi đã xảy ra trong quá trình xóa sản phẩm");
