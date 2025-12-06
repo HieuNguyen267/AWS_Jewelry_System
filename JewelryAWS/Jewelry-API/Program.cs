@@ -2,6 +2,7 @@ using System.Text.Json.Serialization;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,6 +31,12 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabase();
 builder.Services.AddUnitOfWork();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer();
+builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -41,6 +48,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(CorsConstant.PolicyName);
 app.UseHttpsRedirection();
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 
