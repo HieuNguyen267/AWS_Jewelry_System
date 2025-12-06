@@ -1,9 +1,13 @@
 using System.Text.Json.Serialization;
+using Amazon;
+using Amazon.S3;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
+using Jewelry_Model.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,11 +37,24 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabase();
 builder.Services.AddUnitOfWork();
 builder.Services.AddHttpClient();
+builder.Services.AddCustomServices();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var s3Settings = sp.GetRequiredService<IOptions<S3Settings>>().Value;
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(s3Settings.Region)
+    };
+
+    return new AmazonS3Client(config);
+});
 
 builder.Services.AddSwaggerGen(c =>
 {
