@@ -11,8 +11,7 @@ public class CreateProductRequest
 
     public string Description { get; set; } = null!;
 
-    public IFormFile Image { get; set; } = null!;
+    public IFormFile? Image { get; set; }
     
-    [ModelBinder(BinderType = typeof(JsonModelBinder))]
-    public List<CreateProductSizeRequest> Sizes { get; set; } = null!;
+    public List<CreateProductSizeRequest> Sizes { get; set; } =  new List<CreateProductSizeRequest>();
 }

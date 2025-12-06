@@ -34,6 +34,7 @@ public class ProductController : BaseController<ProductController>
     [HttpGet(ApiEndPointConstant.Product.GetAllProduct)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetProductResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
+    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> GetAllProduct([FromQuery] int? page, [FromQuery] int? size)
     {
         int pageNumber = page ?? 1;

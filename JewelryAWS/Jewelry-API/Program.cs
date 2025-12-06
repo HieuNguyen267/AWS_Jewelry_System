@@ -1,6 +1,9 @@
 using System.Text.Json.Serialization;
 using Amazon;
+using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
@@ -13,9 +16,10 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container.   
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
 
 builder.Services.AddCors(options =>
 {
@@ -44,19 +48,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
 builder.Services.AddAuthorization();
 
-builder.Services.Configure<CognitoSetting>(
-    builder.Configuration.GetSection("Cognito"));
+builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection(ConfigurationSectionConstant.AwsSettings));
 
 builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
-    var s3Settings = sp.GetRequiredService<IOptions<S3Settings>>().Value;
+    var awsSettings = sp.GetRequiredService<IOptions<AwsSettings>>().Value;
+    var credentials = new BasicAWSCredentials(awsSettings.UserCredentials.AccessKey, awsSettings.UserCredentials.SecretKey);
     var config = new AmazonS3Config
     {
-        RegionEndpoint = RegionEndpoint.GetBySystemName(s3Settings.Region)
+        RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.S3.Region)
     };
 
-    return new AmazonS3Client(config);
+    return new AmazonS3Client(credentials, config);
 });
 
 builder.Services.AddSwaggerGen(c =>

@@ -45,10 +45,10 @@ namespace Jewelry_Service.Implements
 
         private readonly CognitoSetting _cognito;
         public AuthenService(IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<AuthenService> logger,
-            IHttpContextAccessor httpContextAccessor, HttpClient http, IOptions<CognitoSetting> options) : base(unitOfWork, logger, httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor, HttpClient http, IOptions<AwsSettings> options) : base(unitOfWork, logger, httpContextAccessor)
         {
             _http = http;
-            _cognito = options.Value;
+            _cognito = options.Value.Cognito;
         }
         public async Task<BaseResponse<TokenExchangeResponse>> ExchangeTokenAsync(TokenExchangeRequest tokenExchangeRequest)
         {
