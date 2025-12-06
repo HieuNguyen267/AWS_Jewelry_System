@@ -484,4 +484,5 @@ $RECYCLE.BIN/
 *.swp
 
 
-JewelryAWS/Jewelry-API/appsettings.json
+appsettings.json
+
