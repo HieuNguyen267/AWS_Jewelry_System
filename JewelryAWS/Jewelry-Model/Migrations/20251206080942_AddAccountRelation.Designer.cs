@@ -3,6 +3,7 @@ using System;
 using Jewelry_Model.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jewelry_Model.Migrations
 {
     [DbContext(typeof(JewelryAwsContext))]
-    partial class JewelryAwsContextModelSnapshot : ModelSnapshot
+    [Migration("20251206080942_AddAccountRelation")]
+    partial class AddAccountRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

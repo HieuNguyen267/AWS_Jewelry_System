@@ -4,7 +4,6 @@ using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Product;
 using Jewelry_Model.Payload.Response.Product;
 using Jewelry_Model.Payload.Response.ProductSize;
-using Jewelry_Model.Utils;
 using Jewelry_Repository.Interface;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -31,7 +30,7 @@ public class ProductService : BaseService<ProductService>, IProductService
             Image = await _uploadService.UploadImage(request.Image),
             IsNew = true,
             IsActive = true,
-            CreateAt = TimeUtil.GetCurrentSEATime()
+            CreateAt = DateTime.UtcNow
         };
         
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
@@ -217,7 +216,7 @@ public class ProductService : BaseService<ProductService>, IProductService
         }
         
         product.IsActive = false;
-        product.DeleteAt = TimeUtil.GetCurrentSEATime();
+        product.DeleteAt = DateTime.UtcNow;
         _unitOfWork.GetRepository<Product>().UpdateAsync(product);
 
         var productSizes = await _unitOfWork.GetRepository<ProductSize>().GetListAsync(

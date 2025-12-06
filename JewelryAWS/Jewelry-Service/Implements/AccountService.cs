@@ -41,7 +41,7 @@ public class AccountService : BaseService<AccountService>, IAccountService
             FullName = request.FullName,
             Address = request.Address,
             IsActive = true,
-            CreateAt = TimeUtil.GetCurrentSEATime()
+            CreateAt = DateTime.UtcNow
         };
         
         await _unitOfWork.GetRepository<Account>().InsertAsync(account);
@@ -138,7 +138,7 @@ public class AccountService : BaseService<AccountService>, IAccountService
         }
         
         account.IsActive = false;
-        account.DeleteAt = TimeUtil.GetCurrentSEATime();
+        account.DeleteAt = DateTime.UtcNow;
         
         _unitOfWork.GetRepository<Account>().UpdateAsync(account);
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

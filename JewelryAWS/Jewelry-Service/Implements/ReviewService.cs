@@ -1,4 +1,5 @@
 ﻿using Jewelry_Model.Entity;
+using Jewelry_Model.Enum;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Review;
@@ -7,14 +8,13 @@ using Jewelry_Model.Utils;
 using Jewelry_Repository.Interface;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Jewelry_Service.Implements;
 
 public class ReviewService : BaseService<ReviewService>, IReviewService
 {
-    private IReviewService _reviewServiceImplementation;
-
     public ReviewService(IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<ReviewService> logger, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, httpContextAccessor)
     {
     }
@@ -22,64 +22,64 @@ public class ReviewService : BaseService<ReviewService>, IReviewService
 
     public async Task<BaseResponse<CreateReviewResponse>> CreateReview(Guid id, CreateReviewRequest createReviewRequest)
     {
-        // Guid? accountId = UserUtil.GetAccountId(_httpContextAccessor.HttpContext);
-        //
-        // var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
-        //     predicate: a => a.Id.Equals(accountId) && a.IsActive == true);
-        //
-        // if (account == null)
-        // {
-        //     return new BaseResponse<CreateReviewResponse>()
-        //     {
-        //         Status = StatusCodes.Status404NotFound,
-        //         Message = "Không tìm thấy thông tin người dùng",
-        //         Data = null
-        //     };
-        // }
-        //
-        // var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-        //     predicate: a => a.Id.Equals(id) && a.IsActive == true);
-        //
-        // if (product == null)
-        // {
-        //     return new BaseResponse<CreateReviewResponse>()
-        //     {
-        //         Status = StatusCodes.Status404NotFound,
-        //         Message = "Không tìm thấy sản phẩm",
-        //         Data = null
-        //     };
-        // }
-        //
-        // var review = new Review
-        // {
-        //     Id = Guid.NewGuid(),
-        //     AccountId = account.Id,
-        //     ProductId = product.Id,
-        //     Rating = createReviewRequest.Rating,
-        //     Content = createReviewRequest.Content,
-        //     IsActive = true,
-        //     CreateAt = TimeUtil.GetCurrentSEATime()
-        // };
-        //
-        // await _unitOfWork.GetRepository<Review>().InsertAsync(review);
-        // var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        //
-        // if (!isSuccess)
-        // {
-        //     throw new Exception("Một lỗi đã xảy ra trong quá trình tạo đánh giá");
-        // }
+        Guid? accountId = UserUtil.GetAccountId(_httpContextAccessor.HttpContext);
+
+        var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
+            predicate: a => a.Id.Equals(accountId) && a.IsActive == true);
+
+        if (account == null)
+        {
+            return new BaseResponse<CreateReviewResponse>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Không tìm thấy thông tin người dùng",
+                Data = null
+            };
+        }
+
+        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: a => a.Id.Equals(id) && a.IsActive == true);
+
+        if (product == null)
+        {
+            return new BaseResponse<CreateReviewResponse>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Không tìm thấy sản phẩm",
+                Data = null
+            };
+        }
+
+        var review = new Review
+        {
+            Id = Guid.NewGuid(),
+            AccountId = account.Id,
+            ProductId = product.Id,
+            Rating = createReviewRequest.Rating,
+            Content = createReviewRequest.Content,
+            IsActive = true,
+            CreateAt = DateTime.UtcNow
+        };
+
+        await _unitOfWork.GetRepository<Review>().InsertAsync(review);
+        var isSuccess = await _unitOfWork.CommitAsync() > 0;
+
+        if (!isSuccess)
+        {
+            throw new Exception("Một lỗi đã xảy ra trong quá trình tạo đánh giá");
+        }
 
         return new BaseResponse<CreateReviewResponse>()
         {
             Status = StatusCodes.Status200OK,
             Message = "Tạo đánh giá thành công",
-            // Data = new CreateReviewResponse()
-            // {
-            //     AccountId = account.Id,
-            //     ProductId = product.Id,
-            //     Rating = review.Rating,
-            //     Content = review.Content
-            // }
+            Data = new CreateReviewResponse()
+            {
+                AccountId = account.Id,
+                ProductId = product.Id,
+                Rating = review.Rating,
+                Content = review.Content
+            }
         };
     }
 
@@ -103,13 +103,12 @@ public class ReviewService : BaseService<ReviewService>, IReviewService
                 Id = r.Id,
                 Content = r.Content,
                 Rating = r.Rating,
-                //FullName = r.Account.FullName,
-                FullName = "",
+                FullName = r.Account.FullName,
                 CreateAt = r.CreateAt,
                 AccountId = r.AccountId,
             },
             predicate: r => r.ProductId.Equals(product.Id) && r.IsActive == true,
-            //include: r => r.Include(r => r.Account),
+            include: r => r.Include(r => r.Account),
             page: page,
             size: size);
 
@@ -125,56 +124,56 @@ public class ReviewService : BaseService<ReviewService>, IReviewService
     {
         Guid? accountId = UserUtil.GetAccountId(_httpContextAccessor.HttpContext);
 
-        // var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
-        //     predicate: a => a.Id.Equals(accountId) && a.IsActive == true);
+        var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
+            predicate: a => a.Id.Equals(accountId) && a.IsActive == true);
 
-        // if (account == null)
-        // {
-        //     return new BaseResponse<bool>()
-        //     {
-        //         Status = StatusCodes.Status404NotFound,
-        //         Message = "Không tìm thấy thông tin người dùng",
-        //         Data = false
-        //     };
-        // }
-        //
-        // var reviewRepo = _unitOfWork.GetRepository<Review>();
-        // var review = await reviewRepo.SingleOrDefaultAsync(predicate: r => r.Id.Equals(id));;
-        //
-        // if (review == null)
-        // {
-        //     return new BaseResponse<bool>()
-        //     {
-        //         Status = StatusCodes.Status404NotFound,
-        //         Message = "Không tìm thấy review",
-        //         Data = false
-        //     };
-        // }
-        //
-        // if (account.Role.Equals(RoleEnum.Admin.GetDescriptionFromEnum()))
-        // {
-        //     reviewRepo.DeleteAsync(review);
-        //     await _unitOfWork.CommitAsync();
-        //
-        //     return new BaseResponse<bool>()
-        //     {
-        //         Status = StatusCodes.Status200OK,
-        //         Message = "Xóa đánh giá thành công",
-        //         Data = true
-        //     };
-        // }
-        //
-        // if (!review.AccountId.Equals(account.Id))
-        // {
-        //     return new BaseResponse<bool>()
-        //     {
-        //         Status = StatusCodes.Status403Forbidden,
-        //         Message = "Bạn không có quyền xóa đánh giá này",
-        //         Data = false
-        //     };
-        // }
-        
-        //reviewRepo.DeleteAsync(review);
+        if (account == null)
+        {
+            return new BaseResponse<bool>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Không tìm thấy thông tin người dùng",
+                Data = false
+            };
+        }
+
+        var reviewRepo = _unitOfWork.GetRepository<Review>();
+        var review = await reviewRepo.SingleOrDefaultAsync(predicate: r => r.Id.Equals(id)); ;
+
+        if (review == null)
+        {
+            return new BaseResponse<bool>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Không tìm thấy review",
+                Data = false
+            };
+        }
+
+        if (account.Role.Equals(RoleEnum.Admin.GetDescriptionFromEnum()))
+        {
+            reviewRepo.DeleteAsync(review);
+            await _unitOfWork.CommitAsync();
+
+            return new BaseResponse<bool>()
+            {
+                Status = StatusCodes.Status200OK,
+                Message = "Xóa đánh giá thành công",
+                Data = true
+            };
+        }
+
+        if (!review.AccountId.Equals(account.Id))
+        {
+            return new BaseResponse<bool>()
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Message = "Bạn không có quyền xóa đánh giá này",
+                Data = false
+            };
+        }
+
+        reviewRepo.DeleteAsync(review);
         await _unitOfWork.CommitAsync();
         
         return new BaseResponse<bool>()

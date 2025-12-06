@@ -3,6 +3,7 @@ using System;
 using Jewelry_Model.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Jewelry_Model.Migrations
 {
     [DbContext(typeof(JewelryAwsContext))]
-    partial class JewelryAwsContextModelSnapshot : ModelSnapshot
+    [Migration("20251206065736_AddAccountTable")]
+    partial class AddAccountTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -227,7 +230,7 @@ namespace Jewelry_Model.Migrations
 
             modelBuilder.Entity("Jewelry_Model.Entity.Review", b =>
                 {
-                    b.HasOne("Jewelry_Model.Entity.Account", "Account")
+                    b.HasOne("Jewelry_Model.Entity.Account", null)
                         .WithMany("Reviews")
                         .HasForeignKey("AccountId");
 
@@ -236,8 +239,6 @@ namespace Jewelry_Model.Migrations
                         .HasForeignKey("ProductId")
                         .IsRequired()
                         .HasConstraintName("FK_Review_Product_1");
-
-                    b.Navigation("Account");
 
                     b.Navigation("Product");
                 });

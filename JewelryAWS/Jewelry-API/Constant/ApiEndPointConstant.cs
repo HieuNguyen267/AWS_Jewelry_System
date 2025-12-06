@@ -20,6 +20,7 @@ public static class ApiEndPointConstant
     {
         public const string AuthenticationEndPoint = ApiEndpoint + "/auth";
         public const string ExchangeToken = AuthenticationEndPoint + "/token";
+        public const string UserInfo = AuthenticationEndPoint + "/userinfo";
     }
     
     public static class Product

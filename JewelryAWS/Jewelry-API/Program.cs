@@ -5,6 +5,7 @@ using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
 using Jewelry_Model.Settings;
+using Jewelry_Model.Utils;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -18,13 +19,12 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(name: CorsConstant.PolicyName, policy =>
+    options.AddDefaultPolicy(policy =>
     {
         policy
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .SetIsOriginAllowed(_ => true);
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowAnyOrigin();
     });
 });
 
@@ -43,6 +43,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
 builder.Services.AddAuthorization();
+
+builder.Services.Configure<CognitoSetting>(
+    builder.Configuration.GetSection("Cognito"));
 
 builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
@@ -98,7 +101,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Env
     app.UseSwaggerUI();
 }
 
-app.UseCors(CorsConstant.PolicyName);
+app.UseCors();
 app.UseHttpsRedirection();
 app.UseHttpsRedirection();
 app.UseAuthentication();
@@ -115,4 +118,10 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate();
     }
 }
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<JewelryAwsContext>();
+    await db.SeedDefaultData();
+}
+
 app.Run();

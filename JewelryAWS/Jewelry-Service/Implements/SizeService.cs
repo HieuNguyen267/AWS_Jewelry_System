@@ -37,7 +37,7 @@ public class SizeService : BaseService<SizeService>, ISizeService
             Id = Guid.NewGuid(),
             Label = request.Label,
             IsActive = true,
-            CreateAt = TimeUtil.GetCurrentSEATime()
+            CreateAt = DateTime.UtcNow
         };
         
         await _unitOfWork.GetRepository<Size>().InsertAsync(size);
@@ -55,7 +55,11 @@ public class SizeService : BaseService<SizeService>, ISizeService
             Message = "Tạo kích thước thành công",
             Data = new CreateSizeResponse()
             {
+                Id = size.Id,
                 Label = size.Label,
+                CreateAt = size.CreateAt,
+                UpdateAt = size.UpdateAt,
+                DeleteAt = size.DeleteAt
             }
         };
     }
@@ -67,6 +71,10 @@ public class SizeService : BaseService<SizeService>, ISizeService
             {
               Id  = s.Id,
               Label = s.Label,
+              IsActive = s.IsActive ?? false,
+              CreateAt = s.CreateAt,
+              UpdateAt = s.UpdateAt,
+              DeleteAt = s.DeleteAt,
             },
             predicate: s => s.IsActive == true,
             orderBy: s => s.OrderByDescending(s => s.Label),

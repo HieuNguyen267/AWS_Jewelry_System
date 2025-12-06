@@ -15,6 +15,7 @@ public partial class Review
     public bool? IsActive { get; set; }
 
     public DateTime? CreateAt { get; set; }
+    public virtual Account Account { get; set; } = null!;
 
     public virtual Product Product { get; set; } = null!;
 }

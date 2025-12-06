@@ -5,4 +5,10 @@ public class GetSizeResponse
     public Guid Id { get; set; }
 
     public string? Label { get; set; }
+    public bool IsActive { get; set; }
+    public DateTime? CreateAt { get; set; }
+
+    public DateTime? UpdateAt { get; set; }
+
+    public DateTime? DeleteAt { get; set; }
 }
