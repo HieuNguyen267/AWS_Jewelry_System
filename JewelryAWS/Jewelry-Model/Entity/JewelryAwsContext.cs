@@ -28,19 +28,11 @@ public partial class JewelryAwsContext : DbContext
         modelBuilder.Entity<Product>(entity =>
         {
             entity.ToTable("Product");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreateAt).HasColumnType("datetime");
-            entity.Property(e => e.DeleteAt).HasColumnType("datetime");
-            entity.Property(e => e.UpdateAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<ProductSize>(entity =>
         {
             entity.ToTable("ProductSize");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-
             entity.HasOne(d => d.Product).WithMany(p => p.ProductSizes)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -55,10 +47,6 @@ public partial class JewelryAwsContext : DbContext
         modelBuilder.Entity<Review>(entity =>
         {
             entity.ToTable("Review");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreateAt).HasColumnType("datetime");
-
             entity.HasOne(d => d.Product).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -68,12 +56,7 @@ public partial class JewelryAwsContext : DbContext
         modelBuilder.Entity<Size>(entity =>
         {
             entity.ToTable("Size");
-
-            entity.Property(e => e.Id).ValueGeneratedNever();
-            entity.Property(e => e.CreateAt).HasColumnType("datetime");
-            entity.Property(e => e.DeleteAt).HasColumnType("datetime");
             entity.Property(e => e.Label).HasMaxLength(50);
-            entity.Property(e => e.UpdateAt).HasColumnType("datetime");
         });
 
         OnModelCreatingPartial(modelBuilder);
