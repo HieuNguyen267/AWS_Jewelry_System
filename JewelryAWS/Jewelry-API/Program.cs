@@ -4,6 +4,7 @@ using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,12 +39,46 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
 builder.Services.AddAuthorization();
 
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Jewelry's API", Version = "v1" });
+
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        BearerFormat = "JWT",
+        Scheme = "Bearer",
+        Description = "Enter 'Bearer' [space] and then your token in the text input below.",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+    };
+    c.AddSecurityDefinition("Bearer", securityScheme);
+
+    var securityRequirement = new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer",
+                },
+            },
+            new string[] { }
+        },
+    };
+    c.AddSecurityRequirement(securityRequirement);
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction() || app.Environment.IsStaging())
 {
     app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseCors(CorsConstant.PolicyName);
