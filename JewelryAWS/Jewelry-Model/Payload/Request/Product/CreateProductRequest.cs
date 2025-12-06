@@ -1,4 +1,5 @@
-﻿using Jewelry_Model.Payload.Request.ProductSize;
+﻿using System.Collections;
+using Jewelry_Model.Payload.Request.ProductSize;
 using Jewelry_Model.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,6 @@ public class CreateProductRequest
 
     public string Description { get; set; } = null!;
 
-    public IFormFile? Image { get; set; }
-    
-    public List<CreateProductSizeRequest> Sizes { get; set; } =  new List<CreateProductSizeRequest>();
+    public IFormFile Image { get; set; }
+    public List<CreateProductSizeRequest> Sizes { get; set; } = new();
 }

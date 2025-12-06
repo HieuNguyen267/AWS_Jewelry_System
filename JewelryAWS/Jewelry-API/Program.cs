@@ -1,9 +1,7 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.SecretsManager;
-using Amazon.SecretsManager.Model;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
@@ -32,10 +30,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
+builder.Services.AddControllers()
+    // giữ System.Text.Json cho API JSON
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    })
+    // bật Newtonsoft để bind multipart/form-data + List<T>
+    ;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabase();
