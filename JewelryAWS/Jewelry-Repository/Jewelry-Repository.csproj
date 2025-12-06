@@ -7,4 +7,8 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Jewelry-Model\Jewelry-Model.csproj" />
+    </ItemGroup>
+
 </Project>
