@@ -10,5 +10,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Jewelry-Repository\Jewelry-Repository.csproj" />
     </ItemGroup>
-    
+    <ItemGroup>
+        <PackageReference Include="AWSSDK.S3" Version="4.0.14" />
+    </ItemGroup>
 </Project>
