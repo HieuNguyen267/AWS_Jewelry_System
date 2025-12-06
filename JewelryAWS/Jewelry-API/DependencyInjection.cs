@@ -20,7 +20,7 @@ public static class DependencyInjection
             services.AddScoped<IUploadService, UploadService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IProductSizeService, ProductSizeService>();
-            //services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IReviewService, ReviewService>();
             return services;
         }
         public static IServiceCollection AddDatabase(this IServiceCollection services)
