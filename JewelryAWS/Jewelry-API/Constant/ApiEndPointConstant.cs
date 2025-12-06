@@ -6,6 +6,16 @@ public static class ApiEndPointConstant
     public const string ApiVersion = "/v1";
     public const string ApiEndpoint = RootEndPoint + ApiVersion;
     
+    public static class Account
+    {
+        public const string AccountEndPoint = ApiEndpoint + "/account";
+        public const string RegisterAccount    = AccountEndPoint;
+        public const string GetAccounts    = AccountEndPoint;
+        public const string GetAccount    = AccountEndPoint + "/{id}";
+        public const string UpdateAccount    = AccountEndPoint;
+        public const string DeleteAccount    = AccountEndPoint + "/{id}";
+    }
+    
     public static class Authentication
     {
         public const string AuthenticationEndPoint = ApiEndpoint + "/auth";

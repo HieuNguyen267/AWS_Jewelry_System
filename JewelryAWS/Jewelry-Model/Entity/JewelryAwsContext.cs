@@ -13,7 +13,7 @@ public partial class JewelryAwsContext : DbContext
     {
     }
 
-
+    public virtual DbSet<Account> Accounts { get; set; }
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<ProductSize> ProductSizes { get; set; }
@@ -25,6 +25,18 @@ public partial class JewelryAwsContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Account>(entity =>
+        {
+            entity.ToTable("Account");
+            
+            entity.Property(e => e.Email).HasMaxLength(50);
+            entity.Property(e => e.Password).HasMaxLength(50);
+            entity.Property(e => e.Phone)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Role).HasMaxLength(50);
+        });
+        
         modelBuilder.Entity<Product>(entity =>
         {
             entity.ToTable("Product");
