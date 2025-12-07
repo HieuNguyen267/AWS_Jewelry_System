@@ -1,4 +1,6 @@
-﻿namespace Jewelry_Model.Payload.Response.Product;
+﻿using Jewelry_Model.Entity;
+
+namespace Jewelry_Model.Payload.Response.Product;
 
 public class GetProductResponse
 {
@@ -12,7 +14,8 @@ public class GetProductResponse
     
     public double? Price { get; set; }
     
-    public int? Quantity { get; set; }
+    //public int? Quantity { get; set; }
     
     public double? Rating { get; set; }
+    public List<Entity.ProductSize> Sizes { get; set; } = new();
 }

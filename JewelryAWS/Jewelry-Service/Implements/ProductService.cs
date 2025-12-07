@@ -1,4 +1,6 @@
-﻿using Amazon.S3.Model;
+﻿using Amazon.Runtime;
+using Amazon;
+using Amazon.S3.Model;
 using Jewelry_Model.Entity;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
@@ -23,6 +25,7 @@ public class ProductService : BaseService<ProductService>, IProductService
     private readonly IStorageService _storageService;
 
     private readonly CredentialsSetting _credentialsSetting;
+    private readonly AwsSettings _awsSettings;
     private readonly S3Settings _s3Settings;
     public ProductService(IUnitOfWork<JewelryAwsContext> unitOfWork,
         ILogger<ProductService> logger, IHttpContextAccessor httpContextAccessor,
@@ -31,6 +34,7 @@ public class ProductService : BaseService<ProductService>, IProductService
         : base(unitOfWork, logger, httpContextAccessor)
     {
         _storageService = storageService;
+        _awsSettings = options.Value;
         _s3Settings = options.Value.S3;
         _credentialsSetting = options.Value.UserCredentials;
     }
@@ -41,6 +45,14 @@ public class ProductService : BaseService<ProductService>, IProductService
         //upload file to aws
         if (request.Image != null)
         {
+            var credentials = new BasicAWSCredentials(_awsSettings.UserCredentials.AccessKey, _awsSettings.UserCredentials.SecretKey);
+            var secretClient = new Amazon.SecretsManager.AmazonSecretsManagerClient(credentials, RegionEndpoint.APSoutheast1);
+            var s3SecretKeyBucket = await secretClient.GetSecretValueAsync(new Amazon.SecretsManager.Model.GetSecretValueRequest
+            {
+                SecretId = "S3",
+                VersionStage = "AWSCURRENT"
+            });
+
             using var memoryStr = new MemoryStream();
             await request.Image.CopyToAsync(memoryStr);
 
@@ -49,13 +61,13 @@ public class ProductService : BaseService<ProductService>, IProductService
 
             var s3Obj = new AwsS3.Models.S3Object
             {
-                BucketName = _s3Settings.BucketName,
+                BucketName = s3SecretKeyBucket.SecretString,
                 InputStream = memoryStr,
                 Name = objName 
             };
 
             var keyOfImage = await _storageService.UploadFileAsync(s3Obj);
-            imageStr = keyOfImage;
+            imageStr = $"https://{s3SecretKeyBucket.SecretString}.s3-ap-southeast-1.amazonaws.com/{keyOfImage}";
         }
 
         var product = new Product
@@ -71,37 +83,7 @@ public class ProductService : BaseService<ProductService>, IProductService
 
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
 
-        List<ProductSize> productSizes = new List<ProductSize>();
-
-        foreach (var size in request.Sizes)
-        {
-            var sizeExist = await _unitOfWork.GetRepository<Size>().SingleOrDefaultAsync(
-                predicate: s => s.Id.Equals(size.SizeId) && s.IsActive == true);
-
-            if (sizeExist == null)
-            {
-                return new BaseResponse<CreateProductResponse>()
-                {
-                    Status = StatusCodes.Status404NotFound,
-                    Message = "Kích thước không tồn tại",
-                    Data = null
-                };
-            }
-
-            var productSize = new ProductSize
-            {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                SizeId = sizeExist.Id,
-                Price = size.Price,
-                Quantity = size.Quantity,
-                IsActive = true
-            };
-            productSizes.Add(productSize);
-        }
-
-        await _unitOfWork.GetRepository<ProductSize>().InsertRangeAsync(productSizes);
-
+        
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
 
         if (!isSuccess)
@@ -118,7 +100,6 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Name = product.Name,
                 Description = product.Description,
                 Image = product.Image,
-                ProductSizes = productSizes
             }
         };
     }
@@ -133,8 +114,10 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Description = p.Description,
                 Image = p.Image,
                 Price = p.ProductSizes.Where(ps => ps.Price.HasValue && ps.IsActive == true).Select(ps => ps.Price.Value).Min(),
-                Quantity = p.ProductSizes.Where(ps => ps.Quantity.HasValue && ps.IsActive == true).Select(ps => ps.Quantity.Value).Sum(),
-                Rating = p.Reviews.Average(r => (double?)r.Rating) ?? 0
+                //Quantity = p.ProductSizes.Where(ps => ps.Quantity.HasValue && ps.IsActive == true).Select(ps => ps.Quantity.Value).Sum(),
+                Rating = p.Reviews.Average(r => (double?)r.Rating) ?? 0,
+                Sizes = p.ProductSizes.ToList()
+
             },
             predicate: p => p.IsActive == true,
             include: p => p.Include(p => p.ProductSizes).Include(p => p.Reviews),
@@ -290,4 +273,5 @@ public class ProductService : BaseService<ProductService>, IProductService
             Data = true
         };
     }
+    
 }

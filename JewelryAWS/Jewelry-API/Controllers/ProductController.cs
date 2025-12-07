@@ -1,13 +1,20 @@
-﻿using Jewelry_API.Constant;
+﻿using Amazon.S3.Model;
+using Amazon.S3;
+using System.Runtime;
+using Jewelry_API.Constant;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Product;
+using Jewelry_Model.Payload.Request.ProductSize;
 using Jewelry_Model.Payload.Request.Review;
 using Jewelry_Model.Payload.Response.Product;
+using Jewelry_Model.Payload.Response.ProductSize;
 using Jewelry_Model.Payload.Response.Review;
 using Jewelry_Model.Settings;
+using Jewelry_Service.Implements;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Jewelry_API.Controller;
@@ -15,11 +22,16 @@ namespace Jewelry_API.Controller;
 public class ProductController : BaseController<ProductController>
 {
     private readonly IProductService _productService;
+    private readonly IProductSizeService _productSizeService;
     private readonly IReviewService _reviewService;
-    public ProductController(ILogger<ProductController> logger, IProductService productService, IReviewService reviewService) : base(logger)
+    private readonly IAmazonS3 s3Client;
+    public ProductController(ILogger<ProductController> logger, IProductService productService, 
+        IReviewService reviewService, IProductSizeService productSizeService, IAmazonS3 s3) : base(logger)
     {
         _productService = productService;
         _reviewService = reviewService;
+        _productSizeService = productSizeService;
+        s3Client = s3;
     }
 
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
@@ -37,11 +49,9 @@ public class ProductController : BaseController<ProductController>
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetProductResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> GetAllProduct([FromQuery] int? page, [FromQuery] int? size)
+    public async Task<IActionResult> GetAllProduct([FromQuery] int page = 1, [FromQuery] int size = 20)
     {
-        int pageNumber = page ?? 1;
-        int pageSize = size ?? 10;
-        var response = await _productService.GetAllProduct(pageNumber, pageSize);
+        var response = await _productService.GetAllProduct(page, size);
         return StatusCode(response.Status, response);
     }
     
@@ -94,6 +104,45 @@ public class ProductController : BaseController<ProductController>
         int pageNumber = page ?? 1;
         int pageSize = size ?? 10;
         var response = await _reviewService.GetAllReviews(id, pageNumber, pageSize);
+        return StatusCode(response.Status, response);
+    }
+
+    //productSize
+    [HttpGet(ApiEndPointConstant.ProductSize.GetProductSizes)]
+    [ProducesResponseType(typeof(BaseResponse<List<GetProductSizeResponse>>), StatusCodes.Status200OK)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> GetAllProductSizes(Guid productId)
+    {
+        var response = await _productSizeService.GetSizesByProductId(productId);
+        return StatusCode(response.Status, response);
+    }
+
+    [HttpPost(ApiEndPointConstant.ProductSize.CreateProductSize)]
+    [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status200OK)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> CreateProductSizes(Guid productId, CreateProductSizeRequest data)
+    {
+        var response = await _productSizeService.CreateProductSizes(productId, data);
+        return StatusCode(response.Status, response);
+    }
+
+    [HttpDelete(ApiEndPointConstant.ProductSize.DeleteProductSize)]
+    [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> DeleteProductSize([FromRoute] Guid id)
+    {
+        var response = await _productSizeService.DeleteProductSize(id);
+        return StatusCode(response.Status, response);
+    }
+
+    [HttpPut(ApiEndPointConstant.ProductSize.UpdateProductSize)]
+    [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status404NotFound)]
+    [ProducesErrorResponseType(typeof(ProblemDetails))]
+    public async Task<IActionResult> UpdateProductSize([FromRoute] Guid id, [FromBody] UpdateProductSizeRequest request)
+    {
+        var response = await _productSizeService.UpdateProductSize(id, request);
         return StatusCode(response.Status, response);
     }
 }

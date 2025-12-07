@@ -13,5 +13,4 @@ public class CreateProductRequest
     public string Description { get; set; } = null!;
 
     public IFormFile Image { get; set; }
-    public List<CreateProductSizeRequest> Sizes { get; set; } = new();
 }
