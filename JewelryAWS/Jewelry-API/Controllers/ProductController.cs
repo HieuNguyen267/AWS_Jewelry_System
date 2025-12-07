@@ -16,6 +16,7 @@ using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
+using Amazon.Runtime.Internal;
 
 namespace Jewelry_API.Controller;
 
@@ -25,6 +26,7 @@ public class ProductController : BaseController<ProductController>
     private readonly IProductSizeService _productSizeService;
     private readonly IReviewService _reviewService;
     private readonly IAmazonS3 s3Client;
+
     public ProductController(ILogger<ProductController> logger, IProductService productService, 
         IReviewService reviewService, IProductSizeService productSizeService, IAmazonS3 s3) : base(logger)
     {
@@ -32,6 +34,7 @@ public class ProductController : BaseController<ProductController>
         _reviewService = reviewService;
         _productSizeService = productSizeService;
         s3Client = s3;
+        logger.LogInformation("AccountController initialized");
     }
 
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
@@ -41,6 +44,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> CreateProduct([FromForm] CreateProductRequest request)
     {
+        _logger.LogInformation($"Create product named: {request.Name}");
         var response = await _productService.CreateProduct(request);
         return StatusCode(response.Status, response);
     }
@@ -51,6 +55,7 @@ public class ProductController : BaseController<ProductController>
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> GetAllProduct([FromQuery] int page = 1, [FromQuery] int size = 20)
     {
+        _logger.LogInformation($"Get products called. page: {page}, size: {size}");
         var response = await _productService.GetAllProduct(page, size);
         return StatusCode(response.Status, response);
     }
@@ -61,6 +66,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> GetProductById([FromRoute] Guid id)
     {
+        _logger.LogInformation($"Get product called for id: {id}");
         var response = await _productService.GetProductById(id);
         return StatusCode(response.Status, response);
     }
@@ -71,6 +77,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> UpdateProduct([FromRoute] Guid id, [FromForm] UpdateProductRequest request)
     {
+        _logger.LogInformation($"Update product called for id: {id}");
         var response = await _productService.UpdateProduct(id, request);
         return StatusCode(response.Status, response);
     }
@@ -81,6 +88,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> DeleteProduct([FromRoute] Guid id)
     {
+        _logger.LogInformation($"Delete product called for id: {id}");
         var response = await _productService.DeleteProduct(id);
         return StatusCode(response.Status, response);
     }
@@ -91,6 +99,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> CreateReview([FromRoute] Guid id, [FromBody] CreateReviewRequest request)
     {
+        _logger.LogInformation($"Create review for product with id: {id} called.");
         var response = await _reviewService.CreateReview(id, request);
         return StatusCode(response.Status, response);
     }
@@ -99,11 +108,10 @@ public class ProductController : BaseController<ProductController>
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status404NotFound)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
-    public async Task<IActionResult> GetAllReview([FromRoute] Guid id, [FromQuery] int? page, [FromQuery] int? size)
+    public async Task<IActionResult> GetAllReview([FromRoute] Guid id, [FromQuery] int page = 1, [FromQuery] int size = 20)
     {
-        int pageNumber = page ?? 1;
-        int pageSize = size ?? 10;
-        var response = await _reviewService.GetAllReviews(id, pageNumber, pageSize);
+        _logger.LogInformation($"Get  products called. page: {1} size: {size}");
+        var response = await _reviewService.GetAllReviews(id, page, size);
         return StatusCode(response.Status, response);
     }
 
@@ -113,6 +121,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> GetAllProductSizes(Guid productId)
     {
+        _logger.LogInformation($"Get sizes called for product with id: {productId}");
         var response = await _productSizeService.GetSizesByProductId(productId);
         return StatusCode(response.Status, response);
     }
@@ -122,6 +131,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> CreateProductSizes(Guid productId, CreateProductSizeRequest data)
     {
+        _logger.LogInformation($"Create size for product with id: {productId}");
         var response = await _productSizeService.CreateProductSizes(productId, data);
         return StatusCode(response.Status, response);
     }
@@ -132,6 +142,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> DeleteProductSize([FromRoute] Guid id)
     {
+        _logger.LogInformation($"Delete size with id: {id}");
         var response = await _productSizeService.DeleteProductSize(id);
         return StatusCode(response.Status, response);
     }
@@ -142,6 +153,7 @@ public class ProductController : BaseController<ProductController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> UpdateProductSize([FromRoute] Guid id, [FromBody] UpdateProductSizeRequest request)
     {
+        _logger.LogInformation($"Update size for product with id: {id}");
         var response = await _productSizeService.UpdateProductSize(id, request);
         return StatusCode(response.Status, response);
     }

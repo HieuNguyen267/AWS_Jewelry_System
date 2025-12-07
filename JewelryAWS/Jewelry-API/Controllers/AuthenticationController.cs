@@ -7,6 +7,7 @@ using Jewelry_Model.Payload.Request.Authentication;
 using Jewelry_Model.Payload.Response.Account;
 using Microsoft.AspNetCore.Authorization;
 using Jewelry_API.Controller;
+using Amazon.Runtime.Internal;
 
 namespace Jewelry_API.Controllers;
 public class AuthenticationController : BaseController<AccountController>
@@ -22,6 +23,7 @@ public class AuthenticationController : BaseController<AccountController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> ExchangeToken([FromBody] TokenExchangeRequest request)
     {
+        _logger.LogInformation($"Exchange token for code: {request.Code}");
         var response = await _authenService.ExchangeTokenAsync(request);
         return StatusCode(response.Status, response);
     }
@@ -35,7 +37,7 @@ public class AuthenticationController : BaseController<AccountController>
         var accessToken = HttpContext.Request.Headers["Authorization"]
             .ToString()
             .Replace("Bearer ", "");
-
+        _logger.LogInformation($"Get user information");
         var response = await _authenService.GetUserInfoAsync(accessToken);
         return StatusCode(response.Status, response);
     }

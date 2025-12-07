@@ -11,6 +11,7 @@
       <ProjectReference Include="..\Jewelry-Repository\Jewelry-Repository.csproj" />
     </ItemGroup>
     <ItemGroup>
+        <PackageReference Include="AWS.Logger.AspNetCore" Version="4.0.2" />
         <PackageReference Include="AWSSDK.S3" Version="4.0.4" />
 		<PackageReference Include="AWSSDK.SecretsManager" Version="4.0.3.2" />
     </ItemGroup>

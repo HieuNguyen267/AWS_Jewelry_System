@@ -4,6 +4,7 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.SecretsManager;
 using Amazon.SecretsManager.Model;
+using AWS.Logger;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
@@ -20,8 +21,23 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddOptions<S3Settings>().BindConfiguration(ConfigurationSectionConstant.S3SecretName);
+string accessKey = builder.Configuration["AwsConfig:UserCredentials:AccessKey"]!;
+string secretKey = builder.Configuration["AwsConfig:UserCredentials:SecretKey"]!;
 
+var creds = new BasicAWSCredentials(accessKey, secretKey);
+
+var awsConfig = new AWSLoggerConfig
+{
+    Region = builder.Configuration["Logging:Region"],
+    LogGroup = builder.Configuration["Logging:LogGroup"],
+    Credentials = creds
+};
+
+builder.Logging.ClearProviders();
+builder.Logging.AddAWSProvider(awsConfig);
+builder.Logging.SetMinimumLevel(LogLevel.Information);
+
+builder.Services.AddOptions<S3Settings>().BindConfiguration(ConfigurationSectionConstant.S3SecretName);
 
 builder.Services.AddCors(options =>
 {

@@ -1,4 +1,5 @@
-﻿using Jewelry_API.Constant;
+﻿using Amazon.Runtime.Internal;
+using Jewelry_API.Constant;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Size;
@@ -23,6 +24,7 @@ public class SizeController : BaseController<SizeController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> CreateSize([FromBody] CreateSizeRequest request)
     {
+        _logger.LogInformation($"Create size with label \"{request.Label}\"");
         var response = await _sizeService.CreateSize(request);
         return StatusCode(response.Status, response);
     }
@@ -30,12 +32,10 @@ public class SizeController : BaseController<SizeController>
     [HttpGet(ApiEndPointConstant.Size.GetSizes)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetSizeResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
-    public async Task<IActionResult> GetSizes([FromQuery] int? page, [FromQuery] int? size)
+    public async Task<IActionResult> GetSizes([FromQuery] int page = 1, [FromQuery] int size = 20)
     {
-        int pageNumber = page ?? 1;
-        int pageSize = size ?? 10;
-        
-        var response = await _sizeService.GetSizes(pageNumber, pageSize);
+        _logger.LogInformation($"Get sizes called. page: {page}, size: {size}");
+        var response = await _sizeService.GetSizes(page, size);
         return StatusCode(response.Status, response);
     }
     
@@ -45,6 +45,7 @@ public class SizeController : BaseController<SizeController>
     [ProducesErrorResponseType(typeof(ProblemDetails))]
     public async Task<IActionResult> GetSize([FromRoute] Guid id)
     {
+        _logger.LogInformation($"Get size called with id: {id}");
         var response = await _sizeService.GetSize(id);
         return StatusCode(response.Status, response);
     }
