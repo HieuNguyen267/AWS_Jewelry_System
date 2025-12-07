@@ -5,8 +5,10 @@ using Jewelry_Model.Payload.Request.Product;
 using Jewelry_Model.Payload.Request.Review;
 using Jewelry_Model.Payload.Response.Product;
 using Jewelry_Model.Payload.Response.Review;
+using Jewelry_Model.Settings;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Jewelry_API.Controller;
 
@@ -19,7 +21,7 @@ public class ProductController : BaseController<ProductController>
         _productService = productService;
         _reviewService = reviewService;
     }
-    
+
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
     [ProducesResponseType(typeof(BaseResponse<CreateProductResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CreateProductResponse>), StatusCodes.Status404NotFound)]

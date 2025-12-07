@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
@@ -20,6 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddOptions<S3Settings>().BindConfiguration(ConfigurationSectionConstant.S3SecretName);
+
 
 builder.Services.AddCors(options =>
 {
@@ -32,29 +34,30 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-});
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabase();
 builder.Services.AddUnitOfWork();
 builder.Services.AddHttpClient();
 builder.Services.AddCustomServices();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+//JWT Authentication for Cognito
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
+
 builder.Services.AddAuthorization();
-
+//S3 Configuration
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection(ConfigurationSectionConstant.AwsSettings));
-
-builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var awsSettings = sp.GetRequiredService<IOptions<AwsSettings>>().Value;
     var credentials = new BasicAWSCredentials(awsSettings.UserCredentials.AccessKey, awsSettings.UserCredentials.SecretKey);
+
     var config = new AmazonS3Config
     {
         RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.S3.Region)
