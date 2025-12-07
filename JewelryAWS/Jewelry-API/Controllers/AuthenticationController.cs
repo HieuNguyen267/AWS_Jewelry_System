@@ -42,4 +42,19 @@ public class AuthenticationController : BaseController<AccountController>
         return StatusCode(response.Status, response);
     }
 
+    [CustomRoleAuthorization("Admin")]
+    [HttpGet("/demo1")]
+    public async Task<IActionResult> Demo1()
+    {
+        return Ok("Demo role cho admin");
+    }
+
+    [CustomRoleAuthorization("User")]
+    [HttpGet("/demo2")]
+    public async Task<IActionResult> Demo2()
+    {
+        return Ok("Demo role cho admin");
+    }
+
+
 }

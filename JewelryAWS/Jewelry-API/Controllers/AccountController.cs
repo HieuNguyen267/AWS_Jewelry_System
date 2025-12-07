@@ -1,12 +1,10 @@
-﻿using Amazon.Runtime.Internal;
-using Jewelry_API.Constant;
+﻿using Jewelry_API.Constant;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Account;
 using Jewelry_Model.Payload.Response.Account;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Jewelry_API.Controller;
 
@@ -18,7 +16,8 @@ public class AccountController : BaseController<AccountController>
      
         _accountService = accountService;
     }
-    
+
+    [CustomRoleAuthorization("Admin")]
     [HttpPost(ApiEndPointConstant.Account.RegisterAccount)]
     [ProducesResponseType(typeof(BaseResponse<RegisterResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<RegisterResponse>), StatusCodes.Status500InternalServerError)]
@@ -29,7 +28,8 @@ public class AccountController : BaseController<AccountController>
         var response = await _accountService.Register(request);
         return StatusCode(response.Status, response);
     }
-    
+
+    [CustomRoleAuthorization("Admin")]
     [HttpGet(ApiEndPointConstant.Account.GetAccounts)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetAccountResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -39,7 +39,8 @@ public class AccountController : BaseController<AccountController>
         var response = await _accountService.GetAllAccounts(page, size);
         return StatusCode(response.Status, response);
     }
-    
+
+    [CustomRoleAuthorization("Admin")]
     [HttpGet(ApiEndPointConstant.Account.GetAccount)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status404NotFound)]
@@ -50,7 +51,8 @@ public class AccountController : BaseController<AccountController>
         var response = await _accountService.GetAccountById(id);
         return StatusCode(response.Status, response);
     }
-    
+
+    [CustomRoleAuthorization("Admin")]
     [HttpPut(ApiEndPointConstant.Account.UpdateAccount)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status404NotFound)]
@@ -61,7 +63,8 @@ public class AccountController : BaseController<AccountController>
         var response = await _accountService.UpdateAccount(request);
         return StatusCode(response.Status, response);
     }
-    
+
+    [CustomRoleAuthorization("Admin")]
     [HttpDelete(ApiEndPointConstant.Account.DeleteAccount)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]

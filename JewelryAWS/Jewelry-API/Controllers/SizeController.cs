@@ -17,7 +17,7 @@ public class SizeController : BaseController<SizeController>
     {
         _sizeService = sizeService;
     }
-    
+    [CustomRoleAuthorization("Admin")]
     [HttpPost(ApiEndPointConstant.Size.CreateSize)]
     [ProducesResponseType(typeof(BaseResponse<CreateSizeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CreateSizeResponse>), StatusCodes.Status500InternalServerError)]
@@ -28,7 +28,7 @@ public class SizeController : BaseController<SizeController>
         var response = await _sizeService.CreateSize(request);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin")]
     [HttpGet(ApiEndPointConstant.Size.GetSizes)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetSizeResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -38,7 +38,7 @@ public class SizeController : BaseController<SizeController>
         var response = await _sizeService.GetSizes(page, size);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin,User")]
     [HttpGet(ApiEndPointConstant.Size.GetSize)]
     [ProducesResponseType(typeof(BaseResponse<GetSizeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetSizeResponse>), StatusCodes.Status404NotFound)]

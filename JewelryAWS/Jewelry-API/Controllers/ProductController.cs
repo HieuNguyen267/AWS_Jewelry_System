@@ -37,6 +37,7 @@ public class ProductController : BaseController<ProductController>
         logger.LogInformation("AccountController initialized");
     }
 
+    [CustomRoleAuthorization("Admin")]
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
     [ProducesResponseType(typeof(BaseResponse<CreateProductResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CreateProductResponse>), StatusCodes.Status404NotFound)]
@@ -48,7 +49,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productService.CreateProduct(request);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin,User")]
     [HttpGet(ApiEndPointConstant.Product.GetAllProduct)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetProductResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -59,7 +60,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productService.GetAllProduct(page, size);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin,User")]
     [HttpGet(ApiEndPointConstant.Product.GetProductById)]
     [ProducesResponseType(typeof(BaseResponse<GetProductDetailResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetProductDetailResponse>), StatusCodes.Status404NotFound)]
@@ -70,7 +71,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productService.GetProductById(id);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin")]
     [HttpPut(ApiEndPointConstant.Product.UpdateProduct)]
     [ProducesResponseType(typeof(BaseResponse<UpdateProductResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<UpdateProductResponse>), StatusCodes.Status404NotFound)]
@@ -81,7 +82,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productService.UpdateProduct(id, request);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin")]
     [HttpDelete(ApiEndPointConstant.Product.DeleteProduct)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
@@ -92,7 +93,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productService.DeleteProduct(id);
         return StatusCode(response.Status, response);
     }
-    
+    [CustomRoleAuthorization("Admin,User")]
     [HttpPost(ApiEndPointConstant.Product.CreateReview)]
     [ProducesResponseType(typeof(BaseResponse<CreateReviewResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<CreateReviewResponse>), StatusCodes.Status404NotFound)]
@@ -103,7 +104,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _reviewService.CreateReview(id, request);
         return StatusCode(response.Status, response);
     }
-
+    [CustomRoleAuthorization("Admin,User")]
     [HttpGet(ApiEndPointConstant.Product.GetAllReview)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<IPaginate<GetReviewResponse>>), StatusCodes.Status404NotFound)]
@@ -114,8 +115,8 @@ public class ProductController : BaseController<ProductController>
         var response = await _reviewService.GetAllReviews(id, page, size);
         return StatusCode(response.Status, response);
     }
-
     //productSize
+    [CustomRoleAuthorization("Admin,User")]
     [HttpGet(ApiEndPointConstant.ProductSize.GetProductSizes)]
     [ProducesResponseType(typeof(BaseResponse<List<GetProductSizeResponse>>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -125,7 +126,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productSizeService.GetSizesByProductId(productId);
         return StatusCode(response.Status, response);
     }
-
+    [CustomRoleAuthorization("Admin")]
     [HttpPost(ApiEndPointConstant.ProductSize.CreateProductSize)]
     [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status200OK)]
     [ProducesErrorResponseType(typeof(ProblemDetails))]
@@ -135,7 +136,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productSizeService.CreateProductSizes(productId, data);
         return StatusCode(response.Status, response);
     }
-
+    [CustomRoleAuthorization("Admin")]
     [HttpDelete(ApiEndPointConstant.ProductSize.DeleteProductSize)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<bool>), StatusCodes.Status404NotFound)]
@@ -146,7 +147,7 @@ public class ProductController : BaseController<ProductController>
         var response = await _productSizeService.DeleteProductSize(id);
         return StatusCode(response.Status, response);
     }
-
+    [CustomRoleAuthorization("Admin")]
     [HttpPut(ApiEndPointConstant.ProductSize.UpdateProductSize)]
     [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetProductSizeResponse>), StatusCodes.Status404NotFound)]
