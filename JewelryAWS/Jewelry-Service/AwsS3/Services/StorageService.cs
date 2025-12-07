@@ -3,29 +3,34 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Amazon.SecretsManager.Model;
+using Amazon.SecretsManager;
 using Jewelry_Model.Settings;
 using Jewelry_Service.AwsS3.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace Jewelry_Service.AwsS3.Services
 {
     public interface IStorageService
     {
-        Task<string> UploadFileAsync(S3Object s3obj);
+        Task<string> UploadFileAsync(Models.S3Object s3obj);
+        Task<string> GetImageUrlAsync(string key, DateTime expiry);
     }
 
     public class StorageService : IStorageService
     {
         private readonly IAmazonS3 _amazonS3Client;
         private readonly AwsSettings _awsSettings;
-        public StorageService(IAmazonS3 amazonS3Client ,IOptions<AwsSettings> options)
+        public StorageService(IAmazonS3 amazonS3Client, IOptions<AwsSettings> options)
         {
             _amazonS3Client = amazonS3Client;
             _awsSettings = options.Value;
         }
-        public async Task<string> UploadFileAsync(S3Object s3obj)
+        public async Task<string> UploadFileAsync(Models.S3Object s3obj)
         {
             string key = "";
             try
@@ -61,16 +66,42 @@ namespace Jewelry_Service.AwsS3.Services
             }
         }
 
-        public string GetPresignedUrl(string bucketName, string key, DateTime expiry)
+        public async Task<string> GetImageUrlAsync(string key, DateTime expiry)
         {
-            var request = new Amazon.S3.Model.GetPreSignedUrlRequest
+            var credentials = new BasicAWSCredentials(
+                _awsSettings.UserCredentials.AccessKey,
+                _awsSettings.UserCredentials.SecretKey
+            );
+
+            var secretClient = new AmazonSecretsManagerClient(credentials, RegionEndpoint.APSoutheast1);
+
+            var secretValue = await secretClient.GetSecretValueAsync(new GetSecretValueRequest
             {
-                BucketName = bucketName,
-                Key = key,
-                Expires = expiry
+                SecretId = "S3",
+                VersionStage = "AWSCURRENT"
+            });
+
+            // Tạo presigned GET URL
+            AmazonS3Client client = new AmazonS3Client(credentials,new AmazonS3Config
+            {
+                RegionEndpoint = RegionEndpoint.APSoutheast1
+            });
+            var request = new GetPreSignedUrlRequest
+            {
+                //BucketName = secretValue.SecretString,
+                BucketName = "app-demo-123",
+                //Key = key,
+                Key = "Meo-Meme-4-1.jpg",
+                Expires = expiry,
+                Verb = HttpVerb.GET,
+                ContentType = "image/jpeg"
             };
-            string url = _amazonS3Client.GetPreSignedURL(request);
-            return url;
+
+            return await client.GetPreSignedURLAsync(
+                  request
+                );
+
         }
     }
+
 }

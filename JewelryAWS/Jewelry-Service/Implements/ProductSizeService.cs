@@ -1,6 +1,8 @@
-﻿using Jewelry_Model.Entity;
+﻿using Amazon.Runtime.Internal;
+using Jewelry_Model.Entity;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.ProductSize;
+using Jewelry_Model.Payload.Response.Product;
 using Jewelry_Model.Payload.Response.ProductSize;
 using Jewelry_Repository.Interface;
 using Jewelry_Service.Interfaces;
@@ -14,6 +16,92 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
 {
     public ProductSizeService(IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<ProductSizeService> logger, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, httpContextAccessor)
     {
+    }
+
+    public async Task<BaseResponse<List<GetProductSizeResponse>>> GetSizesByProductId(Guid productId)
+    {
+        var existedProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+           predicate: p => p.Id.Equals(productId) && p.IsActive == true);
+
+        if (existedProduct == null)
+        {
+            return new BaseResponse<List<GetProductSizeResponse>>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Sản phẩm không tồn tại",
+            };
+        }
+
+        var productSizes = _unitOfWork.GetRepository<ProductSize>().GetListAsync(
+            predicate: pz => pz.ProductId.Equals(productId),
+            include: q => q.Include(pz => pz.Size));
+        return new BaseResponse<List<GetProductSizeResponse>>()
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Lấy kích thước sản phẩm thành công",
+            Data = productSizes.Result.Select(ps => new GetProductSizeResponse
+            {
+                Id = ps.Id,
+                Size = ps.Size.Label,
+                Price = ps.Price,
+                Quantity = ps.Quantity
+            }).ToList() 
+        };
+    }
+
+    public async Task<BaseResponse<GetProductSizeResponse>> CreateProductSizes(Guid productId, CreateProductSizeRequest request)
+    {
+
+        //check product exist
+        var existedProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: p => p.Id.Equals(productId) && p.IsActive == true);
+
+        if(existedProduct == null)
+        {
+            return new BaseResponse<GetProductSizeResponse>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Sản phẩm không tồn tại",
+            };
+        }
+
+        var existedSize = await _unitOfWork.GetRepository<Size>().SingleOrDefaultAsync(
+            predicate: p => p.Id.Equals(request.SizeId) && p.IsActive == true);
+
+        if (existedSize == null)
+        {
+            return new BaseResponse<GetProductSizeResponse>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Nhãn kích thước không tồn tại",
+            };
+        }
+        var productSize = new ProductSize
+        {
+            Id = Guid.NewGuid(),
+            ProductId = productId,
+            SizeId = request.SizeId,
+            Price = request.Price,
+            Quantity = request.Quantity,
+            IsActive = true
+        };
+
+        await _unitOfWork.GetRepository<ProductSize>().InsertAsync(productSize);
+        await _unitOfWork.CommitAsync();
+
+        return new BaseResponse<GetProductSizeResponse>()
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Tạo kích thước cho sản phẩm thành công",
+            Data =  new GetProductSizeResponse
+            {
+                Id = productSize.Id,
+                Size = existedSize.Label,
+                Price = productSize.Price,
+                Quantity = productSize.Quantity
+            }
+        };
+
     }
 
     public async Task<BaseResponse<bool>> DeleteProductSize(Guid id)

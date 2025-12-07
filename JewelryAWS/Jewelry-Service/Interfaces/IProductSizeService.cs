@@ -7,6 +7,9 @@ namespace Jewelry_Service.Interfaces;
 
 public interface IProductSizeService
 {
+    Task<BaseResponse<List<GetProductSizeResponse>>> GetSizesByProductId(Guid productId);
+    Task<BaseResponse<GetProductSizeResponse>> CreateProductSizes(Guid productId, CreateProductSizeRequest request);
+
     Task<BaseResponse<bool>> DeleteProductSize(Guid id);
     
     Task<BaseResponse<GetProductSizeResponse>> UpdateProductSize(Guid id, UpdateProductSizeRequest request); 

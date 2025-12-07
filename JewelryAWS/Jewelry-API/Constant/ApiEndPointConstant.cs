@@ -33,6 +33,7 @@ public static class ApiEndPointConstant
         public const string DeleteProduct = ProductEndPoint + "/{id}";
         public const string CreateReview = ProductEndPoint + "/{id}/review";
         public const string GetAllReview = ProductEndPoint + "/{id}/review";
+        public const string GetPreSignedImage = ProductEndPoint + "/{productId}/image";
     }
     
     public static class Size
@@ -45,7 +46,9 @@ public static class ApiEndPointConstant
     
     public static class ProductSize
     {
-        public const string ProductSizeEndPoint = ApiEndpoint + "/product-size";
+        public const string ProductSizeEndPoint = Product.ProductEndPoint + "/{productId}" + "/sizes";
+        public const string GetProductSizes = ProductSizeEndPoint;
+        public const string CreateProductSize = ProductSizeEndPoint;
         public const string DeleteProductSize = ProductSizeEndPoint + "/{id}";
         public const string UpdateProductSize = ProductSizeEndPoint + "/{id}";
     }

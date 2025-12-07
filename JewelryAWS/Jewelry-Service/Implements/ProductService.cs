@@ -71,37 +71,7 @@ public class ProductService : BaseService<ProductService>, IProductService
 
         await _unitOfWork.GetRepository<Product>().InsertAsync(product);
 
-        List<ProductSize> productSizes = new List<ProductSize>();
-
-        foreach (var size in request.Sizes)
-        {
-            var sizeExist = await _unitOfWork.GetRepository<Size>().SingleOrDefaultAsync(
-                predicate: s => s.Id.Equals(size.SizeId) && s.IsActive == true);
-
-            if (sizeExist == null)
-            {
-                return new BaseResponse<CreateProductResponse>()
-                {
-                    Status = StatusCodes.Status404NotFound,
-                    Message = "Kích thước không tồn tại",
-                    Data = null
-                };
-            }
-
-            var productSize = new ProductSize
-            {
-                Id = Guid.NewGuid(),
-                ProductId = product.Id,
-                SizeId = sizeExist.Id,
-                Price = size.Price,
-                Quantity = size.Quantity,
-                IsActive = true
-            };
-            productSizes.Add(productSize);
-        }
-
-        await _unitOfWork.GetRepository<ProductSize>().InsertRangeAsync(productSizes);
-
+        
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
 
         if (!isSuccess)
@@ -118,7 +88,6 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Name = product.Name,
                 Description = product.Description,
                 Image = product.Image,
-                ProductSizes = productSizes
             }
         };
     }
@@ -133,8 +102,10 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Description = p.Description,
                 Image = p.Image,
                 Price = p.ProductSizes.Where(ps => ps.Price.HasValue && ps.IsActive == true).Select(ps => ps.Price.Value).Min(),
-                Quantity = p.ProductSizes.Where(ps => ps.Quantity.HasValue && ps.IsActive == true).Select(ps => ps.Quantity.Value).Sum(),
-                Rating = p.Reviews.Average(r => (double?)r.Rating) ?? 0
+                //Quantity = p.ProductSizes.Where(ps => ps.Quantity.HasValue && ps.IsActive == true).Select(ps => ps.Quantity.Value).Sum(),
+                Rating = p.Reviews.Average(r => (double?)r.Rating) ?? 0,
+                Sizes = p.ProductSizes.ToList()
+
             },
             predicate: p => p.IsActive == true,
             include: p => p.Include(p => p.ProductSizes).Include(p => p.Reviews),
@@ -288,6 +259,34 @@ public class ProductService : BaseService<ProductService>, IProductService
             Status = StatusCodes.Status200OK,
             Message = "Xóa sản phẩm thành công",
             Data = true
+        };
+    }
+
+    public async Task<BaseResponse<string>> GetProductImage(Guid productId)
+    {
+        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
+            predicate: p => p.Id.Equals(productId) && p.IsActive == true);
+
+        if (product == null)
+        {
+            return new BaseResponse<string>()
+            {
+                Status = StatusCodes.Status404NotFound,
+                Message = "Không tìm thấy sản phẩm",
+            };
+        }
+
+        //generate presigned image url
+        var preSignedUrl = await _storageService.GetImageUrlAsync(
+            key: product.Image,
+            expiry: DateTime.UtcNow.AddMinutes(30)
+        );
+
+        return new BaseResponse<string>()
+        {
+            Status = StatusCodes.Status200OK,
+            Message = "Tạo đường dẫn ảnh tạm thời thành công",
+            Data = preSignedUrl
         };
     }
 }
