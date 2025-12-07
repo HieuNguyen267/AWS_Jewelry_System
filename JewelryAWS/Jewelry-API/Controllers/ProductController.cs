@@ -1,4 +1,7 @@
-﻿using Jewelry_API.Constant;
+﻿using Amazon.S3.Model;
+using Amazon.S3;
+using System.Runtime;
+using Jewelry_API.Constant;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
 using Jewelry_Model.Payload.Request.Product;
@@ -11,6 +14,7 @@ using Jewelry_Model.Settings;
 using Jewelry_Service.Implements;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Options;
 
 namespace Jewelry_API.Controller;
@@ -20,11 +24,14 @@ public class ProductController : BaseController<ProductController>
     private readonly IProductService _productService;
     private readonly IProductSizeService _productSizeService;
     private readonly IReviewService _reviewService;
-    public ProductController(ILogger<ProductController> logger, IProductService productService, IReviewService reviewService, IProductSizeService productSizeService) : base(logger)
+    private readonly IAmazonS3 s3Client;
+    public ProductController(ILogger<ProductController> logger, IProductService productService, 
+        IReviewService reviewService, IProductSizeService productSizeService, IAmazonS3 s3) : base(logger)
     {
         _productService = productService;
         _reviewService = reviewService;
         _productSizeService = productSizeService;
+        s3Client = s3;
     }
 
     [HttpPost(ApiEndPointConstant.Product.CreateProduct)]
@@ -35,17 +42,6 @@ public class ProductController : BaseController<ProductController>
     public async Task<IActionResult> CreateProduct([FromForm] CreateProductRequest request)
     {
         var response = await _productService.CreateProduct(request);
-        return StatusCode(response.Status, response);
-    }
-
-    [HttpGet(ApiEndPointConstant.Product.GetPreSignedImage)]
-    [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status500InternalServerError)]
-    [ProducesErrorResponseType(typeof(ProblemDetails))]
-    public async Task<IActionResult> GetPresignedProductImage(Guid productId)
-    {
-        var response = await _productService.GetProductImage(productId);
         return StatusCode(response.Status, response);
     }
     

@@ -1,4 +1,6 @@
-﻿using Amazon.S3.Model;
+﻿using Amazon.Runtime;
+using Amazon;
+using Amazon.S3.Model;
 using Jewelry_Model.Entity;
 using Jewelry_Model.Paginate;
 using Jewelry_Model.Payload;
@@ -23,6 +25,7 @@ public class ProductService : BaseService<ProductService>, IProductService
     private readonly IStorageService _storageService;
 
     private readonly CredentialsSetting _credentialsSetting;
+    private readonly AwsSettings _awsSettings;
     private readonly S3Settings _s3Settings;
     public ProductService(IUnitOfWork<JewelryAwsContext> unitOfWork,
         ILogger<ProductService> logger, IHttpContextAccessor httpContextAccessor,
@@ -31,6 +34,7 @@ public class ProductService : BaseService<ProductService>, IProductService
         : base(unitOfWork, logger, httpContextAccessor)
     {
         _storageService = storageService;
+        _awsSettings = options.Value;
         _s3Settings = options.Value.S3;
         _credentialsSetting = options.Value.UserCredentials;
     }
@@ -41,6 +45,14 @@ public class ProductService : BaseService<ProductService>, IProductService
         //upload file to aws
         if (request.Image != null)
         {
+            var credentials = new BasicAWSCredentials(_awsSettings.UserCredentials.AccessKey, _awsSettings.UserCredentials.SecretKey);
+            var secretClient = new Amazon.SecretsManager.AmazonSecretsManagerClient(credentials, RegionEndpoint.APSoutheast1);
+            var s3SecretKeyBucket = await secretClient.GetSecretValueAsync(new Amazon.SecretsManager.Model.GetSecretValueRequest
+            {
+                SecretId = "S3",
+                VersionStage = "AWSCURRENT"
+            });
+
             using var memoryStr = new MemoryStream();
             await request.Image.CopyToAsync(memoryStr);
 
@@ -49,13 +61,13 @@ public class ProductService : BaseService<ProductService>, IProductService
 
             var s3Obj = new AwsS3.Models.S3Object
             {
-                BucketName = _s3Settings.BucketName,
+                BucketName = s3SecretKeyBucket.SecretString,
                 InputStream = memoryStr,
                 Name = objName 
             };
 
             var keyOfImage = await _storageService.UploadFileAsync(s3Obj);
-            imageStr = keyOfImage;
+            imageStr = $"https://{s3SecretKeyBucket.SecretString}.s3-ap-southeast-1.amazonaws.com/{keyOfImage}";
         }
 
         var product = new Product
@@ -261,32 +273,5 @@ public class ProductService : BaseService<ProductService>, IProductService
             Data = true
         };
     }
-
-    public async Task<BaseResponse<string>> GetProductImage(Guid productId)
-    {
-        var product = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
-            predicate: p => p.Id.Equals(productId) && p.IsActive == true);
-
-        if (product == null)
-        {
-            return new BaseResponse<string>()
-            {
-                Status = StatusCodes.Status404NotFound,
-                Message = "Không tìm thấy sản phẩm",
-            };
-        }
-
-        //generate presigned image url
-        var preSignedUrl = await _storageService.GetImageUrlAsync(
-            key: product.Image,
-            expiry: DateTime.UtcNow.AddMinutes(30)
-        );
-
-        return new BaseResponse<string>()
-        {
-            Status = StatusCodes.Status200OK,
-            Message = "Tạo đường dẫn ảnh tạm thời thành công",
-            Data = preSignedUrl
-        };
-    }
+    
 }

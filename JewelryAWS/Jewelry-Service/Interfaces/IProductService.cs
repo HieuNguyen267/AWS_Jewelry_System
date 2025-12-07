@@ -16,5 +16,4 @@ public interface IProductService
     Task<BaseResponse<UpdateProductResponse>> UpdateProduct(Guid id, UpdateProductRequest request);
     
     Task<BaseResponse<bool>> DeleteProduct(Guid id);
-    Task<BaseResponse<string>> GetProductImage(Guid productId);
 }

@@ -33,7 +33,7 @@ public static class ApiEndPointConstant
         public const string DeleteProduct = ProductEndPoint + "/{id}";
         public const string CreateReview = ProductEndPoint + "/{id}/review";
         public const string GetAllReview = ProductEndPoint + "/{id}/review";
-        public const string GetPreSignedImage = ProductEndPoint + "/{productId}/image";
+       
     }
     
     public static class Size
