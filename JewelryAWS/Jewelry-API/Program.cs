@@ -2,6 +2,8 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.SecretsManager;
+using Amazon.SecretsManager.Model;
 using Jewelry_API;
 using Jewelry_API.Constant;
 using Jewelry_Model.Entity;
@@ -18,6 +20,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddOptions<S3Settings>().BindConfiguration(ConfigurationSectionConstant.S3SecretName);
+
 
 builder.Services.AddCors(options =>
 {
@@ -31,32 +35,29 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers()
-    // giữ System.Text.Json cho API JSON
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    })
-    // bật Newtonsoft để bind multipart/form-data + List<T>
-    ;
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDatabase();
 builder.Services.AddUnitOfWork();
 builder.Services.AddHttpClient();
 builder.Services.AddCustomServices();
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+//JWT Authentication for Cognito
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer();
 builder.Services.ConfigureOptions<JwtBearerConfigureOptions>();
+
 builder.Services.AddAuthorization();
-
+//S3 Configuration
 builder.Services.Configure<AwsSettings>(builder.Configuration.GetSection(ConfigurationSectionConstant.AwsSettings));
-
-builder.Services.Configure<S3Settings>(builder.Configuration.GetSection("S3Settings"));
 builder.Services.AddSingleton<IAmazonS3>(sp =>
 {
     var awsSettings = sp.GetRequiredService<IOptions<AwsSettings>>().Value;
     var credentials = new BasicAWSCredentials(awsSettings.UserCredentials.AccessKey, awsSettings.UserCredentials.SecretKey);
+
     var config = new AmazonS3Config
     {
         RegionEndpoint = RegionEndpoint.GetBySystemName(awsSettings.S3.Region)
