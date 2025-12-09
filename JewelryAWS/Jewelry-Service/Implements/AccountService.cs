@@ -8,13 +8,16 @@ using Jewelry_Model.Utils;
 using Jewelry_Repository.Interface;
 using Jewelry_Service.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 namespace Jewelry_Service.Implements;
 
 public class AccountService : BaseService<AccountService>, IAccountService
 {
-    public AccountService(IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<AccountService> logger, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, httpContextAccessor)
+    private readonly JewelryAwsContext _context;
+    public AccountService(JewelryAwsContext context, IUnitOfWork<JewelryAwsContext> unitOfWork, ILogger<AccountService> logger, IHttpContextAccessor httpContextAccessor) : base(unitOfWork, logger, httpContextAccessor)
     {
+        _context = context;
     }
 
     public async Task<BaseResponse<RegisterResponse>> Register(RegisterRequest request)
@@ -159,10 +162,10 @@ public class AccountService : BaseService<AccountService>, IAccountService
     {
         Guid? accountId = UserUtil.GetAccountId(_httpContextAccessor.HttpContext);
 
-        var account = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
-            predicate: a => a.Id.Equals(accountId) && a.IsActive == true);
+        var current = await _context.Accounts
+            .SingleOrDefaultAsync(a => a.Id == accountId && a.IsActive == true);
 
-        if (account == null)
+        if (current == null)
         {
             return new BaseResponse<GetAccountResponse>()
             {
@@ -171,17 +174,16 @@ public class AccountService : BaseService<AccountService>, IAccountService
                 Data = null
             };
         }
-        
-        account.FullName = request.FullName ?? account.FullName;
-        account.Address = request.Address ?? account.Address;
-        
-        _unitOfWork.GetRepository<Account>().UpdateAsync(account);
-        var isSuccess = await _unitOfWork.CommitAsync() > 0;
-        
-        if (!isSuccess)
-        {
-            throw new Exception("Một lỗi đã xảy ra trong quá trình đổi cập nhật thông tin mới");
-        }
+
+        // Update trực tiếp entity đang được tracking
+        current.FullName = request.FullName ?? current.FullName;
+        current.Address = request.Address ?? current.Address;
+        // Nếu cần update phone thì sửa lại:
+        // current.Phone = request.Phone ?? current.Phone;
+        current.UpdateAt = DateTime.UtcNow;
+
+        // KHÔNG GỌI Update() hay Attach()
+        await _context.SaveChangesAsync();
 
         return new BaseResponse<GetAccountResponse>()
         {
@@ -189,12 +191,13 @@ public class AccountService : BaseService<AccountService>, IAccountService
             Message = "Cập nhật thông tin thành công",
             Data = new GetAccountResponse()
             {
-                Id = account.Id,
-                FullName = account.FullName,
-                Address = account.Address,
-                Email = account.Email,
-                Phone = account.Phone,
+                Id = current.Id,
+                FullName = current.FullName,
+                Address = current.Address,
+                Email = current.Email,
+                Phone = current.Phone,
             }
         };
     }
+
 }

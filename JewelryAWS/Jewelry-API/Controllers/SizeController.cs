@@ -38,7 +38,7 @@ public class SizeController : BaseController<SizeController>
         var response = await _sizeService.GetSizes(page, size);
         return StatusCode(response.Status, response);
     }
-    [CustomRoleAuthorization("Admin,User")]
+    [CustomRoleAuthorization("Admin", "User")]
     [HttpGet(ApiEndPointConstant.Size.GetSize)]
     [ProducesResponseType(typeof(BaseResponse<GetSizeResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetSizeResponse>), StatusCodes.Status404NotFound)]

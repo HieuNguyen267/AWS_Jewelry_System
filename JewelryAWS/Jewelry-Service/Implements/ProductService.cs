@@ -113,14 +113,14 @@ public class ProductService : BaseService<ProductService>, IProductService
                 Name = p.Name,
                 Description = p.Description,
                 Image = p.Image,
-                Price = p.ProductSizes.Where(ps => ps.Price.HasValue && ps.IsActive == true).Select(ps => ps.Price.Value).Min(),
+                Price = p.ProductSizes.Where(ps => ps.Price.HasValue).Select(ps => ps.Price).Min(),
                 //Quantity = p.ProductSizes.Where(ps => ps.Quantity.HasValue && ps.IsActive == true).Select(ps => ps.Quantity.Value).Sum(),
                 Rating = p.Reviews.Average(r => (double?)r.Rating) ?? 0,
                 Sizes = p.ProductSizes.ToList()
 
             },
             predicate: p => p.IsActive == true,
-            include: p => p.Include(p => p.ProductSizes).Include(p => p.Reviews),
+            include: p => p.Include(p => p.ProductSizes).ThenInclude(ps => ps.Size).Include(p => p.Reviews),
             page: page,
             size: size);
 
@@ -157,7 +157,7 @@ public class ProductService : BaseService<ProductService>, IProductService
 
         if (product == null)
         {
-            new BaseResponse<GetProductDetailResponse>()
+            return new BaseResponse<GetProductDetailResponse>()
             {
                 Status = StatusCodes.Status404NotFound,
                 Message = "Không tìm thấy sản phẩm",

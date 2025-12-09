@@ -127,17 +127,19 @@ namespace Jewelry_Service.Implements
             }
 
             var result = JsonSerializer.Deserialize<CognitoUserInfoResponse>(content, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            {
+                PropertyNameCaseInsensitive = true
+            });
 
             var existedAccount = await _unitOfWork.GetRepository<Account>().SingleOrDefaultAsync(
                 predicate: a => a.Id.Equals(Guid.Parse(result.Sub!)) && a.IsActive == true);
 
+            Account account;
+
             if (existedAccount == null)
             {
                 //create user
-                var account = new Account()
+                account = new Account()
                 {
                     Id = Guid.Parse(result.Sub!),
                     Email = result.Email,
@@ -154,13 +156,16 @@ namespace Jewelry_Service.Implements
 
                 await _unitOfWork.CommitAsync();
             }
+            else account = existedAccount;
 
             var accountRes = new GetAccountResponse
             {
-
                 Id = Guid.Parse(result!.Sub),
-                Email = result.Email,
-                FullName = result.Username
+                Email = account.Email,
+                FullName = account.FullName,
+                Address = account.Address,
+                Phone = account.Phone,
+                Role = account.Role
             };
 
             return new BaseResponse<GetAccountResponse>()
@@ -171,6 +176,6 @@ namespace Jewelry_Service.Implements
             };
         }
 
-        
+
     }
 }

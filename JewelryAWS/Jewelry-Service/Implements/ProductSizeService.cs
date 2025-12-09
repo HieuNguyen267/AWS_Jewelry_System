@@ -18,6 +18,7 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
     {
     }
 
+    #region product endpoints
     public async Task<BaseResponse<List<GetProductSizeResponse>>> GetSizesByProductId(Guid productId)
     {
         var existedProduct = await _unitOfWork.GetRepository<Product>().SingleOrDefaultAsync(
@@ -44,10 +45,14 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
                 Id = ps.Id,
                 Size = ps.Size.Label,
                 Price = ps.Price,
-                Quantity = ps.Quantity
-            }).ToList() 
+                Quantity = ps.Quantity,
+                IsActive = ps.IsActive ?? false
+            }).ToList()
         };
     }
+
+    #endregion
+
 
     public async Task<BaseResponse<GetProductSizeResponse>> CreateProductSizes(Guid productId, CreateProductSizeRequest request)
     {
@@ -118,10 +123,9 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
                 Data = false,
             };
         }
+       
         
-        productSize.IsActive = false;
-        
-        _unitOfWork.GetRepository<ProductSize>().UpdateAsync(productSize);
+        _unitOfWork.GetRepository<ProductSize>().DeleteAsync(productSize);
         
         var isSuccess = await _unitOfWork.CommitAsync() > 0;
         
@@ -140,6 +144,7 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
 
     public async Task<BaseResponse<GetProductSizeResponse>> UpdateProductSize(Guid id, UpdateProductSizeRequest request)
     {
+        request.IsActive ??= false;
         var productSize = await _unitOfWork.GetRepository<ProductSize>().SingleOrDefaultAsync(
             predicate: ps => ps.Id.Equals(id) && ps.IsActive == true,
             include: ps => ps.Include(ps => ps.Size));
@@ -156,7 +161,7 @@ public class ProductSizeService : BaseService<ProductSizeService>, IProductSizeS
         
         productSize.Quantity = request.Quantity ?? productSize.Quantity;
         productSize.Price = request.Price ?? productSize.Price;
-        
+        productSize.IsActive = request.IsActive;
         _unitOfWork.GetRepository<ProductSize>().UpdateAsync(productSize);
         
         var isSuccess = await _unitOfWork.CommitAsync() > 0;

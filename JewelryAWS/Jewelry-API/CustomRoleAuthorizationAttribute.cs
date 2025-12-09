@@ -48,9 +48,13 @@ namespace Jewelry_API
                 context.Result = new UnauthorizedResult();
                 return;
             }
+            var subGuid = Guid.Parse(sub);
 
+            var demo = dbContext.Accounts.ToList();
             // Query DB để lấy user và role
-            var user = await dbContext.Accounts.FirstOrDefaultAsync(a => a.Id == Guid.Parse(sub));
+            var user = await dbContext.Accounts
+                    .FirstOrDefaultAsync(a => a.Id == subGuid);
+
             if (user == null)
             {
                 context.Result = new UnauthorizedResult();

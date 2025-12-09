@@ -52,7 +52,7 @@ public class AccountController : BaseController<AccountController>
         return StatusCode(response.Status, response);
     }
 
-    [CustomRoleAuthorization("Admin")]
+    [CustomRoleAuthorization("User", "Admin")]
     [HttpPut(ApiEndPointConstant.Account.UpdateAccount)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BaseResponse<GetAccountResponse>), StatusCodes.Status404NotFound)]
