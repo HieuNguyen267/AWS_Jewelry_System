@@ -191,18 +191,40 @@ public class ProductService : BaseService<ProductService>, IProductService
         string? uploadedImage = null;
         if (request.Image != null)
         {
-            using var memoryStr = new MemoryStream();
-            await request.Image.CopyToAsync(memoryStr);
-
-            var fileExt = Path.GetExtension(request.Image.FileName);
-            var objName = $"{Guid.NewGuid().ToString()}{fileExt}";
-            var s3Obj = new AwsS3.Models.S3Object
+            try
             {
-                BucketName = _s3Settings.BucketName,
-                InputStream = memoryStr,
-                Name = objName
-            };
-            uploadedImage = await _storageService.UploadFileAsync(s3Obj);
+                var credentials = new BasicAWSCredentials(_awsSettings.UserCredentials.AccessKey, _awsSettings.UserCredentials.SecretKey);
+                var secretClient = new Amazon.SecretsManager.AmazonSecretsManagerClient(credentials, RegionEndpoint.APSoutheast1);
+                var s3SecretKeyBucket = await secretClient.GetSecretValueAsync(new Amazon.SecretsManager.Model.GetSecretValueRequest
+                {
+                    SecretId = "S3",
+                    VersionStage = "AWSCURRENT"
+                });
+
+                using var memoryStr = new MemoryStream();
+                await request.Image.CopyToAsync(memoryStr);
+
+                var fileExt = Path.GetExtension(request.Image.FileName);
+                var objName = $"{Guid.NewGuid().ToString()}{fileExt}";
+
+                var s3Obj = new AwsS3.Models.S3Object
+                {
+                    BucketName = s3SecretKeyBucket.SecretString,
+                    InputStream = memoryStr,
+                    Name = objName
+                };
+
+                var keyOfImage = await _storageService.UploadFileAsync(s3Obj);
+                uploadedImage = $"https://{s3SecretKeyBucket.SecretString}.s3-ap-southeast-1.amazonaws.com/{keyOfImage}";
+            }
+            catch (Exception)
+            {
+                return new BaseResponse<UpdateProductResponse>()
+                {
+                    Status = StatusCodes.Status500InternalServerError,
+                    Message = "Cập nhật sản phẩm thất bại. Có lỗi trong quá trình tải ảnh lên",
+                };
+            }
         }
 
         product.Name = request.Name ?? product.Name;
